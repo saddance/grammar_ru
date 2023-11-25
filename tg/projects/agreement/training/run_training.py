@@ -19,17 +19,18 @@ from tg.projects.agreement.training.deliverable_stuff import TrainingTask
 from tg.grammar_ru.common import Loc
 from tg.projects.agreement.training.delivery_routine import DeliveryRoutine
 import torch
-load_dotenv(Loc.root_path / 'environment.env')
+
+load_dotenv(Loc.root_path / "environment.env")
 
 EPOCHS = 40
 
-project_name = 'agreementproject'
+project_name = "agreementproject"
 # dataset_name = 'agreement_adj_mid50_0_declination'
 # dataset_name = 'agreement_adj_mid50_1_declination'
 # dataset_name = 'agreement_noun_tiny'
 # dataset_name = 'agreement_noun_mid50'
-dataset_name = 'agreement_noun_mid50'
-bucket = 'agreementadjbucket'
+dataset_name = "agreement_noun_mid50"
+bucket = "agreementadjbucket"
 task_name = f"task_{EPOCHS}ep_{dataset_name}"
 
 
@@ -40,18 +41,13 @@ def get_training_job() -> TrainingJob:
     task.settings.epoch_count = EPOCHS
     # task.settings.evaluation_batch_limit = 5#TODO delete
     # task.settings.training_batch_limit = 5#TODO delete
-    task.optimizer_ctor = CtorAdapter('torch.optim:Adam', ('params',), lr=0.1)
-    task.loss_ctor = CtorAdapter(
-        "torch.nn:CrossEntropyLoss")
+    task.optimizer_ctor = CtorAdapter("torch.optim:Adam", ("params",), lr=0.1)
+    task.loss_ctor = CtorAdapter("torch.nn:CrossEntropyLoss")
 
     task.info["dataset"] = dataset_name
     task.info["name"] = task_name
 
-    job = TrainingJob(
-        tasks=[task],
-        project_name=project_name,
-        bucket=bucket
-    )
+    job = TrainingJob(tasks=[task], project_name=project_name, bucket=bucket)
     return job
 
 
@@ -59,11 +55,11 @@ job = get_training_job()
 # job.run()
 # exit()
 
-tag = 'v_' + datetime.datetime.now().time().strftime("%H_%M_%S")
-dockerhub_repo = 'agreement'  # name of your repo
-dockerhub_login = 'sergio0x0'  # your login
+tag = "v_" + datetime.datetime.now().time().strftime("%H_%M_%S")
+dockerhub_repo = "agreement"  # name of your repo
+dockerhub_login = "sergio0x0"  # your login
 
-local_img = 'agr_job'  # job name
+local_img = "agr_job"  # job name
 
 
 routine = DeliveryRoutine(job, name=local_img, version=tag)

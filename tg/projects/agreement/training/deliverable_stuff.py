@@ -23,25 +23,26 @@ from ....grammar_ru.components import CoreExtractor
 
 def create_assembly_point(context_length=20):
     ap = btc.ContextualAssemblyPoint(
-        name='features',
+        name="features",
         context_builder=PlainContextBuilder(
-            include_zero_offset=True,
-            left_to_right_contexts_proportion=0.5
+            include_zero_offset=True, left_to_right_contexts_proportion=0.5
         ),
-        extractor=CoreExtractor(join_column='another_word_id'),
-        context_length=context_length
+        extractor=CoreExtractor(join_column="another_word_id"),
+        context_length=context_length,
     )
     ap.reduction_type = ap.reduction_type.Dim3Folded
     return ap
 
 
 def get_multilabel_extractor():
-    label_extractor = (bt.PlainExtractor
-                       .build(btf.Conventions.LabelFrame)
-                       .index()
-                       .apply(take_columns=['label'],
-                              transformer=dft.DataFrameTransformerFactory.default_factory())
-                       )
+    label_extractor = (
+        bt.PlainExtractor.build(btf.Conventions.LabelFrame)
+        .index()
+        .apply(
+            take_columns=["label"],
+            transformer=dft.DataFrameTransformerFactory.default_factory(),
+        )
+    )
     return label_extractor
 
 
@@ -53,35 +54,34 @@ class MulticlassMetrics(bt.Metric):
     def get_names(self):
         result = []
         if self.add_accuracy:
-            result.append('accuracy')
+            result.append("accuracy")
         if self.add_rating:
-            result.append('rating')
+            result.append("rating")
         return result
 
     def measure(self, df, _):
-        prefix = 'true_label_'
+        prefix = "true_label_"
         labels = []
         for c in df.columns:
             if c.startswith(prefix):
-                labels.append(c.replace(prefix, ''))
+                labels.append(c.replace(prefix, ""))
 
         def ustack(df, prefix, cols, name):
-            df = df[[prefix+c for c in cols]]
+            df = df[[prefix + c for c in cols]]
             df.columns = [c for c in cols]
             df = df.unstack().to_frame(name)
             return df
 
-        predicted = ustack(df, 'predicted_label_', labels, 'predicted')
-        true = ustack(df, 'true_label_', labels, 'true')
-        df = predicted.merge(true, left_index=True,
-                             right_index=True).reset_index()
-        df.columns = ['label', 'sample', 'predicted', 'true']
-        df = df.feed(fluq.add_ordering_column(
-            'sample', ('predicted', False), 'predicted_rating'))
+        predicted = ustack(df, "predicted_label_", labels, "predicted")
+        true = ustack(df, "true_label_", labels, "true")
+        df = predicted.merge(true, left_index=True, right_index=True).reset_index()
+        df.columns = ["label", "sample", "predicted", "true"]
+        df = df.feed(
+            fluq.add_ordering_column("sample", ("predicted", False), "predicted_rating")
+        )
 
-        match = (df.loc[df.predicted_rating ==
-                 0].set_index('sample').true > 0.5)
-        rating = df.loc[df.true > 0.5].set_index('sample').predicted_rating
+        match = df.loc[df.predicted_rating == 0].set_index("sample").true > 0.5
+        rating = df.loc[df.true > 0.5].set_index("sample").predicted_rating
         result = []
         if self.add_accuracy:
             result.append(match.mean())
@@ -101,19 +101,22 @@ def _update_sizes_with_argument(argument_name, argument, sizes, modificator):
         return modificator(sizes, argument)
     else:
         raise ValueError(
-            f"Argument {argument_name} is supposed to be int, Tensor or none, but was `{argument}`")
+            f"Argument {argument_name} is supposed to be int, Tensor or none, but was `{argument}`"
+        )
 
 
 class FullyConnectedNetwork(torch.nn.Module):
-    def __init__(self,
-                 sizes: List[int],
-                 input: Union[None, torch.Tensor, int] = None,
-                 output: Union[None, torch.Tensor, int] = None):
+    def __init__(
+        self,
+        sizes: List[int],
+        input: Union[None, torch.Tensor, int] = None,
+        output: Union[None, torch.Tensor, int] = None,
+    ):
         super(FullyConnectedNetwork, self).__init__()
+        sizes = _update_sizes_with_argument("input", input, sizes, lambda s, v: [v] + s)
         sizes = _update_sizes_with_argument(
-            'input', input, sizes, lambda s, v: [v] + s)
-        sizes = _update_sizes_with_argument(
-            'output', output, sizes, lambda s, v: s + [v])
+            "output", output, sizes, lambda s, v: s + [v]
+        )
         self.layers = torch.nn.ModuleList()
         for i in range(len(sizes) - 1):
             self.layers.append(torch.nn.Linear(sizes[i], sizes[i + 1]))
@@ -131,19 +134,18 @@ class Network(torch.nn.Module):
         super(Network, self).__init__()
         self.head = head
         self.tail = FullyConnectedNetwork(
-            sizes=[], input=hidden_size, output=batch.index_frame.label.nunique())
+            sizes=[], input=hidden_size, output=batch.index_frame.label.nunique()
+        )
         self.sm = torch.nn.Softmax(dim=1)
 
     def forward(self, batch):
-        return (
-            self.tail(
-                self.head(batch)))
+        return self.tail(self.head(batch))
 
 
 def get_mask(df):
-    four_labels = {0,5, 18, 19}
+    four_labels = {0, 5, 18, 19}
     # presented_labels = set(str(x) for x in set(df.label.unique()))
-    mask_cols = [c for c in df.columns if ('mask' in c) ]
+    mask_cols = [c for c in df.columns if ("mask" in c)]
     mask_cols = [col for col in mask_cols if int(col[4:]) in four_labels]
     if not mask_cols:
         raise ValueError("Mask is not found in index_frame")
@@ -165,7 +167,7 @@ class NetworkFactory:
         head_factory = self.assembly_point.create_network_factory()
         head = head_factory(batch)
         # return Network(head, self.assembly_point.hidden_size,  batch)
-        return Network(head, self.assembly_point.hidden_size,  batch)
+        return Network(head, self.assembly_point.hidden_size, batch)
 
 
 class TrainingTask(btf.TorchTrainingTask):
@@ -181,7 +183,8 @@ class TrainingTask(btf.TorchTrainingTask):
         ap.dim_3_network_factory.network_type = btc.Dim3NetworkType.LSTM
         # head_factory = ap.create_network_factory()
         self.setup_batcher(
-            idb, [ap.create_extractor(), get_multilabel_extractor()],
-            stratify_by_column='label'
-            )
+            idb,
+            [ap.create_extractor(), get_multilabel_extractor()],
+            stratify_by_column="label",
+        )
         self.setup_model(NetworkFactory(ap), ignore_consistancy_check=True)
