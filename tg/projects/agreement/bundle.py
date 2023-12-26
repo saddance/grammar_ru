@@ -18,7 +18,20 @@ from tg.projects.agreement.adjectiveless_pymorphy_featurizer import (
 from tg.projects.agreement.bundles_tools import _print_thrown
 
 
-NEW = {"ая", "ого", "ое", "ой", "ом", "ому", "ую", "ые", "ый", "ым", "ыми", "ых"}
+NEW = {
+    "ая",
+    "ого",
+    "ое",
+    "ой",
+    # "ом",
+    # "ому",
+    "ую",
+    "ые",
+    "ый",
+    "ым",
+    "ыми",
+    "ых"
+}
 # NOTE выкинули 'ою'
 
 GOOD = {
@@ -52,8 +65,8 @@ BIG = {
     "ого",
     "ое",
     "ой",
-    "ом",
-    "ому",
+    # "ом",
+    # "ому",
     "ую",
     "ые",
     "ым",
@@ -75,6 +88,9 @@ GOOD_num_by_end = {e: i + len(NEW_num_by_end) for i, e in enumerate(GOOD_list)}
 BIG_num_by_end = {
     e: i + len(NEW_num_by_end) + len(GOOD_num_by_end) for i, e in enumerate(BIG_list)
 }
+print('NEW_num_by_end', NEW_num_by_end)
+print('GOOD_num_by_end', GOOD_num_by_end)
+print('BIG_num_by_end', BIG_num_by_end)
 
 nums_by_decl_and_end = (
     {("new", e): n for e, n in NEW_num_by_end.items()}
@@ -93,6 +109,7 @@ def _extract_ending(word: str):
 def _replace_end_by_num(df, dt, num_by_end):
     mask = df.declension_type == dt
     df.loc[mask, "label"] = df[mask].ending.map(num_by_end)
+    # df.loc[mask, "label"] = df[mask].ending
 
 
 # declension_type
@@ -140,8 +157,8 @@ class AdjAgreementTrainIndexBuilder(ITransfuseSelector):
             self.norm_endings_nums
         )
         _replace_end_by_num(adjectives, 0, NEW_num_by_end)
-        _replace_end_by_num(adjectives, 1, GOOD_num_by_end)
-        _replace_end_by_num(adjectives, 2, BIG_num_by_end)
+        # _replace_end_by_num(adjectives, 1, GOOD_num_by_end)
+        # _replace_end_by_num(adjectives, 2, BIG_num_by_end)
         thrown.extend(adjectives[adjectives.label.isnull()].word)
         adjectives = adjectives[~adjectives.label.isnull()]
 
@@ -160,7 +177,7 @@ class AdjAgreementTrainIndexBuilder(ITransfuseSelector):
         ].copy()
         df = df.reset_index(drop=True)
         df.index.name = "sample_id"
-        df["split"] = train_display_test_split(df)
+        df["split"] = train_display_test_split(df, test_size=0.15, display_size=0.15)
         return df
 
 

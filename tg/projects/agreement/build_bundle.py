@@ -18,15 +18,15 @@ from tg.projects.agreement.bundle import (
 
 
 INDEXED_BUNDLE_PATH = (
-    Loc.bundles_path / "agreement/prepare/noun_books&pub_60K_balanced/raw/raw.zip"
+    Loc.bundles_path / "agreement/prepare/adj_books&pub_60K_balanced/raw/raw.zip"
 )
 FEATURIZED_BUNDLE_PATH = (
-    Loc.bundles_path / "agreement/prepare/noun_books&pub_60K_balanced/feat/feat.zip"
+    Loc.bundles_path / "agreement/prepare/adj_books&pub_60K_balanced/feat/feat.zip"
 )
 
 
 def build_index():
-    index_builder = NounAgreementTrainIndexBuilder()
+    index_builder = AdjAgreementTrainIndexBuilder()
     CorpusBuilder.transfuse_corpus(
         [Loc.corpus_path / "prepare/balanced/books&pub_60K_balanced_feat.zip"],
         INDEXED_BUNDLE_PATH,
@@ -67,13 +67,13 @@ def assemble(name, limit):
 
 
 if __name__ == "__main__":
-    # build_index()
-    # featurize_index()
-    # suffix = "_all_decl"
-    prefix = "noun_"  #'noun_norm_e_'
-    assemble(prefix + "tiny", 1)
-    assemble(prefix + "toy", 5)
-    assemble(prefix + "mid50", 50)
+    build_index()
+    featurize_index()
+    suffix = "_all_decl"
+    prefix = "adj_"  #'noun_norm_e_'
+    # assemble(prefix + "tiny", 1)
+    # assemble(prefix + "toy", 5)
+    assemble(prefix + "mid50", 500)
     # assemble('toy'+suffix, 5)
     # assemble('mid20'+suffix, 20)
     # assemble('mid50'+suffix, 50)

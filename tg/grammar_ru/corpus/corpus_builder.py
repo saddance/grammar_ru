@@ -134,6 +134,7 @@ class CorpusBuilder:
                  ):
         reader = CorpusReader(corpus_path)
         toc = reader.get_toc()
+        print(toc)
         if limit_entries is not None:
             if random_state is None:
                 uids = toc.iloc[:limit_entries].index
