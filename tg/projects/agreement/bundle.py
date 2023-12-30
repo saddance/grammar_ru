@@ -23,8 +23,8 @@ NEW = {
     "ого",
     "ое",
     "ой",
-    # "ом",
-    # "ому",
+    "ом",
+    "ому",
     "ую",
     "ые",
     "ый",
@@ -65,8 +65,8 @@ BIG = {
     "ого",
     "ое",
     "ой",
-    # "ом",
-    # "ому",
+    "ом",
+    "ому",
     "ую",
     "ые",
     "ым",
@@ -157,8 +157,8 @@ class AdjAgreementTrainIndexBuilder(ITransfuseSelector):
             self.norm_endings_nums
         )
         _replace_end_by_num(adjectives, 0, NEW_num_by_end)
-        # _replace_end_by_num(adjectives, 1, GOOD_num_by_end)
-        # _replace_end_by_num(adjectives, 2, BIG_num_by_end)
+        _replace_end_by_num(adjectives, 1, GOOD_num_by_end)
+        _replace_end_by_num(adjectives, 2, BIG_num_by_end)
         thrown.extend(adjectives[adjectives.label.isnull()].word)
         adjectives = adjectives[~adjectives.label.isnull()]
 

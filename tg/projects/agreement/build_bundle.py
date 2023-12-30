@@ -2,7 +2,7 @@ from tg.grammar_ru.features import (
     PyMorphyFeaturizer,
     SlovnetFeaturizer,
     SyntaxTreeFeaturizer,
-    SyntaxStatsFeaturizer,
+    SyntaxStatsFeaturizer, SnowballFeaturizer,
 )
 from tg.grammar_ru.common import Loc
 from yo_fluq_ds import *
@@ -39,12 +39,14 @@ def featurize_index():
         INDEXED_BUNDLE_PATH,
         FEATURIZED_BUNDLE_PATH,
         [
+            # PyMorphyFeaturizer(),
             AdjectivelessPyMorphyFeaturizer(),  # PyMorphyFeaturizer(),
             # SlovnetFeaturizer(),
+            # SnowballFeaturizer(),
             # SyntaxTreeFeaturizer(),
             # SyntaxStatsFeaturizer()
         ],
-        2,
+        6,
         True,
     )
 
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     prefix = "adj_"  #'noun_norm_e_'
     # assemble(prefix + "tiny", 1)
     # assemble(prefix + "toy", 5)
-    assemble(prefix + "mid50", 500)
+    assemble(prefix + "full", None)
     # assemble('toy'+suffix, 5)
     # assemble('mid20'+suffix, 20)
     # assemble('mid50'+suffix, 50)
