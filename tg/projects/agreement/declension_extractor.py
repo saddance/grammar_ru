@@ -142,6 +142,7 @@ class AdjAgreementIndexBuilder:
         )
 
         adjectives = adjectives[~undefined_ending_mask]
+        print(adjectives.norm_ending)
         adjectives["declension_type"] = adjectives.norm_ending.replace(
             self.norm_endings_nums
         )
